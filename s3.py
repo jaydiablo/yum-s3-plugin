@@ -52,6 +52,8 @@ def createBotoGrabber():
 			else:
 				self.bucket_name = self.baseurl[1]
 				self.key_prefix = self.baseurl[2]
+			if self.key_prefix.startswith("/"):
+                                self.key_prefix = self.key_prefix[1:]
 			m = re.match('(.*)\.s3.*\.amazonaws\.com', self.bucket_name)
 			if (m):
 				self.bucket_name = m.group(1)
