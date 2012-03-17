@@ -140,7 +140,10 @@ def createUrllibGrabber():
 			self.awsSecretKey = awsSecretKey
 
 		def _request(self,url):
-			req = urllib2.Request("%s%s" % (self.baseurl, url))
+			from urllib import quote
+			if self.DEBUG:
+				print "Requesting URL: %s%s" % (self.baseurl, quote(url))
+			req = urllib2.Request("%s%s" % (self.baseurl, quote(url)))
 			UrllibGrabber.s3sign(req, self.awsSecretKey, self.awsAccessKey )
 			return req
 
@@ -213,7 +216,7 @@ def init_hook(conduit):
 
 	repos = conduit.getRepos()
 	for key,repo in repos.repos.iteritems():
-		if isinstance(repo, YumRepository) and repo.s3_enabled:
+		if isinstance(repo, YumRepository) and repo.s3_enabled and repo.enabled:
 			new_repo = AmazonS3Repo(key)
 			new_repo.baseurl = repo.baseurl
 			new_repo.mirrorlist = repo.mirrorlist
