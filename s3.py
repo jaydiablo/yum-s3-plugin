@@ -198,7 +198,7 @@ from yum import config
 
 import yum.Errors
 
-__revision__ = "1.0.0"
+__revision__ = "1.0.7"
 
 requires_api_version = '2.5'
 plugin_type = TYPE_CORE
