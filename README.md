@@ -8,3 +8,14 @@ Distributed under Apache License v2.0 ( see LICENSE file in this directory )
 
 This version of the fork still uses URLGrabber and Boto.  This should work for
 Python 2.4 still.
+
+-----
+
+Revision History:
+
+1.0.0 Initial version
+.
+.
+.
+1.0.7 Change modified by AllyUnion
+1.0.8 Merging changes from jaydiablo
