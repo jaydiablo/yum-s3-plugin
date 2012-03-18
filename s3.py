@@ -191,22 +191,26 @@ def createGrabber():
 
 AmazonS3Grabber = createGrabber()
 
+import logging
 import os
 import sys
 import urllib
+
 from yum.plugins import TYPE_CORE
 from yum.yumRepo import YumRepository
 from yum import config
+from yum import logginglevels
 
 import yum.Errors
 
-__revision__ = "1.0.8"
+__revision__ = "1.0.9"
 
 requires_api_version = '2.5'
 plugin_type = TYPE_CORE
 CONDUIT=None
 
 def config_hook(conduit):
+	logger = logging.getLogger("yum.verbose.main")
 	config.RepoConf.s3_enabled = config.BoolOption(False)
 	config.RepoConf.key_id = config.Option()
 	config.RepoConf.secret_key = config.Option()
