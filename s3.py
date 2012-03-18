@@ -212,8 +212,8 @@ CONDUIT=None
 def config_hook(conduit):
 	logger = logging.getLogger("yum.verbose.main")
 	config.RepoConf.s3_enabled = config.BoolOption(False)
-	config.RepoConf.key_id = config.Option()
-	config.RepoConf.secret_key = config.Option()
+	config.RepoConf.key_id = config.Option() or conduit.confString('main', 'aws_access_key_id')
+	config.RepoConf.secret_key = config.Option() or conduit.confString('main', 'aws_secret_access_key')
 
 def init_hook(conduit):
 	"""
