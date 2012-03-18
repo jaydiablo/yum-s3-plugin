@@ -48,7 +48,6 @@ plugin_type = TYPE_CORE
 CONDUIT=None
 
 def config_hook(conduit):
-	logger = logging.getLogger("yum.verbose.main")
 	config.RepoConf.s3_enabled = config.BoolOption(False)
 	config.RepoConf.key_id = config.Option() or conduit.confString('main', 'aws_access_key_id')
 	config.RepoConf.secret_key = config.Option() or conduit.confString('main', 'aws_secret_access_key')
@@ -78,10 +77,12 @@ def init_hook(conduit):
 def createUrllibGrabber():
 
 	import urllib2
-	import time, sha, hmac, base64
+	import time
+	import sha
+	import hmac
+	import base64
 
 	class UrllibGrabber:
-		DEBUG = None
 		@classmethod
 
 		def s3sign(cls,request, secret_key, key_id, date=None):
@@ -102,6 +103,7 @@ def createUrllibGrabber():
         		request.add_header('Authorization', "AWS %s:%s" % ( key_id,  digest ))
 
 		def __init__(self, awsAccessKey, awsSecretKey, baseurl ):
+			self.logger = logging.getLogger("yum.verbose.main")
 			try:
 				baseurl = baseurl[0]
 			except:
@@ -112,20 +114,19 @@ def createUrllibGrabber():
 
 		def _request(self,url):
 			from urllib import quote
-			if self.DEBUG:
-				print "Requesting URL: %s%s" % (self.baseurl, quote(url))
+			self.logger.log(logginglevels.DEBUG_4, "s3: Requesting URL: %s%s" % (self.baseurl, quote(url)))
 			req = urllib2.Request("%s%s" % (self.baseurl, quote(url)))
 			UrllibGrabber.s3sign(req, self.awsSecretKey, self.awsAccessKey )
 			return req
 
 		def urlgrab(self, url, filename=None, **kwargs):
 			"""urlgrab(url) copy the file to the local filesystem"""
-			if self.DEBUG:
-				print "UrlLibGrabber urlgrab url=%s filename=%s" % ( url, filename )
+			self.logger.log(logginglevels.DEBUG_4, "s3: UrlLibGrabber urlgrab url=%s filename=%s" % ( url, filename ))
 			req = self._request(url)
 			if not filename:
 				filename = req.get_selector()
-				if filename[0] == '/': filename = filename[1:]
+				if filename[0] == '/':
+					filename = filename[1:]
 			out = open(filename, 'w+')
 			resp = urllib2.urlopen(req)
 			buff = resp.read(8192)
@@ -147,19 +148,19 @@ def createUrllibGrabber():
 
 def createBotoGrabber():
 	import boto
-	from urlparse import urlparse
 	import re
+
+	from urlparse import urlparse
 	from urlgrabber.grabber import URLGrabber
 
 	class BotoGrabber(URLGrabber):
-		DEBUG = None
 		def __init__(self, awsAccessKey, awsSecretKey, baseurl):
-			if self.DEBUG:
-				print "creating empty URLGrabber instance"
+			self.logger = logging.getLogger("yum.verbose.main")
+			self.logger.log(logginglevels.DEBUG_4, "s3: creating empty URLGrabber instance")
 			URLGrabber.__init__(self)
-			if self.DEBUG:
-				print "BotoGrabber init BASE_URL=%s" % baseurl
-			if not baseurl: raise Exception("BotoGrabberInit got blank baseurl")
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber init BASE_URL=%s" % baseurl)
+			if not baseurl:
+				raise Exception("s3: BotoGrabberInit got blank baseurl")
 			try:
 				baseurl = baseurl[0]
 			except:
@@ -181,8 +182,7 @@ def createBotoGrabber():
 				print "%s - %s" % (self.bucket_name, self.key_prefix)
 
 		def _key_name(self,url):
-			if self.DEBUG:
-				print "BotoGrabber _key_name url=%s, key_prefix=%s" % ( url, self.key_prefix )
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber _key_name url=%s, key_prefix=%s" % ( url, self.key_prefix ))
 			if not url.startswith("http://"):
 				return "%s%s" % ( self.key_prefix, url )
 			if sys.stdout.isatty():
@@ -194,48 +194,45 @@ def createBotoGrabber():
 
 		def _key(self, key_name):
 			bucket = self.s3.get_bucket(self.bucket_name)
-			if self.DEBUG:
-				print "BotoGrabber _key for bucket_name=%s, key_name=%s" % ( self.bucket_name, key_name )
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber _key for bucket_name=%s, key_name=%s" % ( self.bucket_name, key_name ))
 			return bucket.get_key(key_name)
 
 		def urlgrab(self, url, filename=None, **kwargs):
 			"""urlgrab(url) copy the file to the local filesystem"""
-			if self.DEBUG:
-				print "BotoGrabber urlgrab url=%s filename=%s" % ( url, filename )
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber urlgrab url=%s filename=%s" % ( url, filename ))
 			key_name = self._key_name(url)
-			if self.DEBUG:
-				print "BotoGrabber urlgrab url=%s key_name=%s filename=%s" % ( url, key_name, filename )
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber urlgrab url=%s key_name=%s filename=%s" % ( url, key_name, filename ))
 			key = self._key(key_name)
-			if not key: raise Exception("Can not get key for key=%s" % key_name )
-			if not filename: filename = key.key
+			if not key:
+				raise Exception("s3: Can not get key for key=%s" % key_name )
+
+			if not filename:
+				filename = key.key
+
 			key.get_contents_to_filename(filename)
 			return filename
 			# zzz - does this return a value or something?
 
 		def urlopen(self, url, **kwargs):
 			"""urlopen(url) open the remote file and return a file object"""
-			if self.DEBUG:
-				print "BotoGrabber urlopen url=%s" % url
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber urlopen url=%s" % url)
 			return self._key(url)
 
 		def urlread(self, url, limit=None, **kwargs):
 			"""urlread(url) return the contents of the file as a string"""
-			if self.DEBUG:
-				print "BotoGrabber urlread url=%s" % url
+			self.logger.log(logginglevels.DEBUG_4, "s3: BotoGrabber urlread url=%s" % url)
 			return self._key(url).read()
 
 	return BotoGrabber
 
 def createGrabber():
-	DEBUG = None
+	logger = logging.getLogger("yum.verbose.main")
 	try:
 		rv = createBotoGrabber()
-		if DEBUG:
-			print "Created BotoGrabber"
+		logger.log(logginglevels.DEBUG_4, "s3: Created BotoGrabber")
 		return rv
 	except:
-		if DEBUG:
-			print "Creating UrllibGrabber"
+		logger.log(logginglevels.DEBUG_4, "s3: Creating UrllibGrabber")
 		return createUrllibGrabber()
 
 AmazonS3Grabber = createGrabber()
@@ -256,7 +253,9 @@ class AmazonS3Repo(YumRepository):
 		YumRepository.setupGrab(self)
 		self.grabber = AmazonS3Grabber(self.key_id, self.secret_key )
 
-	def _getgrabfunc(self): raise Exception("get grabfunc!")
+	def _getgrabfunc(self):
+		raise Exception("get grabfunc!")
+
 	def _getgrab(self):
 		if not self.grabber:
 			self.grabber = AmazonS3Grabber(self.key_id, self.secret_key, baseurl=self.baseurl )
