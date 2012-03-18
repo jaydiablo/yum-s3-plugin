@@ -232,7 +232,7 @@ def init_hook(conduit):
 			new_repo.enablegroups = repo.enablegroups
 			new_repo.key_id = repo.key_id
 			new_repo.secret_key = repo.secret_key
-			del repos.repos[repo.id]
+			repos.delete(repo.id)
 			repos.add(new_repo)
 
 
