@@ -102,8 +102,10 @@ def createUrllibGrabber():
         		request.add_header('Authorization', "AWS %s:%s" % ( key_id,  digest ))
 
 		def __init__(self, awsAccessKey, awsSecretKey, baseurl ):
-			try: baseurl = baseurl[0]
-			except: pass
+			try:
+				baseurl = baseurl[0]
+			except:
+				pass
 			self.baseurl = baseurl
 			self.awsAccessKey = awsAccessKey
 			self.awsSecretKey = awsSecretKey
@@ -158,8 +160,10 @@ def createBotoGrabber():
 			if self.DEBUG:
 				print "BotoGrabber init BASE_URL=%s" % baseurl
 			if not baseurl: raise Exception("BotoGrabberInit got blank baseurl")
-			try: baseurl = baseurl[0]
-			except: pass
+			try:
+				baseurl = baseurl[0]
+			except:
+				pass
 			self.s3 = boto.connect_s3(awsAccessKey, awsSecretKey)
 			self.baseurl = urlparse(baseurl)
 			if hasattr(self.baseurl, 'netloc'):
