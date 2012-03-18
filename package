@@ -3,8 +3,6 @@
 usage () {
       echo "$0: a small wrapper to generate a rpm."
       echo "Usage: $0 -d"
-      echo "Options:"
-      echo "Note that -d is meaningless, it stands for 'do it'..."
 }
 
 if [ "$1" != "-d" ]; then
@@ -12,6 +10,7 @@ if [ "$1" != "-d" ]; then
    exit 1
 fi
 
+set -e
 buildroot=$(dirname $(readlink -f "$0"))
 mkdir -p ${buildroot}/{RPMS,BUILD,BUILDROOT}
 rpmbuild --verbose \
