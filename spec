@@ -1,5 +1,5 @@
 Name:		yum-s3
-Version:	0.1.6
+Version:	0.1.7
 Release:	1
 Summary:	Amazon S3 plugin for yum.
 
