@@ -61,9 +61,12 @@ def init_hook(conduit):
 	for key,repo in repos.repos.iteritems():
 		if isinstance(repo, YumRepository) and repo.s3_enabled and repo.enabled:
 			new_repo = AmazonS3Repo(key)
+			new_repo.name = repo.name
 			new_repo.baseurl = repo.baseurl
 			new_repo.mirrorlist = repo.mirrorlist
 			new_repo.basecachedir = repo.basecachedir
+			if hasattr(repo, 'base_persistdir'):
+				new_repo.base_persistdir = repo.base_persistdir
 			new_repo.gpgcheck = repo.gpgcheck
 			new_repo.proxy = repo.proxy
 			new_repo.enablegroups = repo.enablegroups
@@ -78,7 +81,6 @@ def createUrllibGrabber():
 
 	import urllib2
 	import time
-	import sha
 	import hmac
 	import base64
 
@@ -98,7 +100,12 @@ def createUrllibGrabber():
 			                               'date':request.headers.get('Date'),
 			                               #'canon_amzn_headers':'',
 			                               'canon_amzn_resource':resource }
-        		digest = hmac.new(secret_key, sigstring, sha ).digest()
+			try:
+				import hashlib
+				digest = hmac.new(secret_key, sigstring, hashlib.sha1 ).digest()
+			except:
+				import sha
+        			digest = hmac.new(secret_key, sigstring, sha ).digest()
         		digest = base64.b64encode(digest)
         		request.add_header('Authorization', "AWS %s:%s" % ( key_id,  digest ))
 
