@@ -39,7 +39,7 @@ from yum import logginglevels
 import yum.Errors
 
 # This plugin's revision number
-__revision__ = "1.0.9"
+__revision__ = "1.1.0"
 
 ##### Set up Yum Plugin #####
 
