@@ -59,7 +59,7 @@ def init_hook(conduit):
 
 	repos = conduit.getRepos()
 	for key,repo in repos.repos.iteritems():
-		if isinstance(repo, YumRepository) and repo.s3_enabled and repo.enabled:
+		if isinstance(repo, YumRepository) and repo.s3_enabled:
 			new_repo = AmazonS3Repo(key)
 			new_repo.name = repo.name
 			new_repo.baseurl = repo.baseurl
@@ -253,7 +253,6 @@ class AmazonS3Repo(YumRepository):
 
 	def __init__(self, repoid):
 		YumRepository.__init__(self, repoid)
-		self.enable()
 		self.grabber = None
 
 	def setupGrab(self):
